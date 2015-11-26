@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from .Object import Frame, PageTable, PageDirectory, CNode, Endpoint, \
     Notification, TCB, Untyped, IOPageTable, Object, IRQ, IOPorts, IODevice, \
-    VCPU, ASIDPool
+    VCPU, ASIDPool, SC
 from .Spec import Spec
 from .Cap import Cap
 import collections, os
@@ -45,6 +45,9 @@ seL4_IRQControl = 26
 
 seL4_PageDirectoryObject = 30
 seL4_ASID_Pool = 31
+
+seL4_SchedContextObject = 31
+seL4_SchedControlObject = 32
 
 seL4_CanRead = 1
 seL4_CanWrite = 2
@@ -148,6 +151,8 @@ class ObjectAllocator(object):
                 raise ValueError
         elif type == seL4_ASID_Pool:
             o = ASIDPool(name)
+        elif type == seL4_SchedContextObject:
+            o = SC(name)
         else:
             raise Exception('Invalid object type %s' % type)
         self.spec.add_object(o)
