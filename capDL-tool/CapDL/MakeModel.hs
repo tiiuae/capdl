@@ -203,16 +203,31 @@ getTCBprio [] = Nothing
 getTCBprio (TCBExtraParam (Prio prio) : _) = Just prio
 getTCBprio (_ : xs) = getTCBprio xs
 
+getTCBmax_prio :: [ObjParam] -> Maybe Integer
+getTCBmax_prio [] = Nothing
+getTCBmax_prio (TCBExtraParam (MaxPrio max_prio) : xs) = Just max_prio
+getTCBmax_prio (_ : xs) = getTCBmax_prio xs
+
+getTCBcrit :: [ObjParam] -> Maybe Integer
+getTCBcrit [] = Nothing
+getTCBcrit (TCBExtraParam (Crit crit) : xs) = Just crit
+getTCBcrit (_ : xs) = getTCBcrit xs
+
+getTCBmax_crit :: [ObjParam] -> Maybe Integer
+getTCBmax_crit [] = Nothing
+getTCBmax_crit (TCBExtraParam (MaxCrit max_crit) : xs) = Just max_crit
+getTCBmax_crit (_ : xs) = getTCBmax_crit xs
+
 getExtraInfo :: Name -> [ObjParam] -> Maybe TCBExtraInfo
 getExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
     case (getTCBAddr params, getTCBip params, getTCBsp params, getTCBelf params, getTCBprio params) of
         (Just addr, Just ip, Just sp, Just elf, Just prio) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just elf) (Just prio)
+            Just $ TCBExtraInfo addr (Just ip) (Just sp) (Just elf) (Just prio) Nothing Nothing Nothing
         (Just addr, Just ip, Just sp, Nothing, Just prio) ->
-            Just $ TCBExtraInfo addr (Just ip) (Just sp) Nothing (Just prio)
+            Just $ TCBExtraInfo addr (Just ip) (Just sp) Nothing (Just prio) Nothing Nothing Nothing
         (Just addr, Nothing, Nothing, Nothing, Nothing) ->
-            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing
+            Just $ TCBExtraInfo addr Nothing Nothing Nothing Nothing Nothing Nothing Nothing
         (Nothing, Nothing, Nothing, Nothing, Nothing) -> Nothing
         params -> error $ "Incorrect extra tcb parameters: " ++ n ++ show params
 
@@ -230,6 +245,37 @@ getInitArguments :: [ObjParam] -> [Word]
 getInitArguments [] = []
 getInitArguments (InitArguments init : _) = init
 getInitArguments (_ : xs) = getInitArguments xs
+
+getSCperiod :: [ObjParam] -> Maybe Word
+getSCperiod [] = Nothing
+getSCperiod (SCExtraParam (Period period) : xs) = Just period
+getSCperiod (_ : xs) = getSCperiod xs
+
+getSCdeadline :: [ObjParam] -> Maybe Word
+getSCdeadline [] = Nothing
+getSCdeadline (SCExtraParam (Deadline deadline) : xs) = Just deadline
+getSCdeadline (_ : xs) = getSCdeadline xs
+
+getSCexec_req :: [ObjParam] -> Maybe Word
+getSCexec_req [] = Nothing
+getSCexec_req (SCExtraParam (ExecReq exec_req) : xs) = Just exec_req
+getSCexec_req (_ : xs) = getSCexec_req xs
+
+getSCflags :: [ObjParam] -> Maybe Integer
+getSCflags [] = Nothing
+getSCflags (SCExtraParam (Flags flags) : xs) = Just flags
+getSCflags (_ : xs) = getSCflags xs
+
+getSCExtraInfo :: Name -> [ObjParam] -> Maybe SCExtraInfo
+getSCExtraInfo n params =
+    -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
+    case (getSCperiod params, getSCdeadline params, getSCexec_req params, getSCflags params) of
+        (Just period, Just deadline, Just exec_req, Just flags) ->
+            Just $ SCExtraInfo (Just period) (Just deadline) (Just exec_req) (Just flags)
+        (Just period, Just deadline, Just exec_req, Nothing) ->
+            Just $ SCExtraInfo (Just period) (Just deadline) (Just exec_req) Nothing 
+        (Nothing, Nothing, Nothing, Nothing) -> Nothing
+        params -> error $ "Incorrect extra sc parameters: " ++ n ++ show params
 
 getMaybeBitSize :: [ObjParam] -> Maybe Word
 getMaybeBitSize [] = Nothing
@@ -311,6 +357,8 @@ validObjPars (Obj Frame_T ps []) =
 validObjPars (Obj IOPT_T ps []) = subsetConstrs ps [IOPTLevel undefined]
 validObjPars (Obj IOPorts_T ps []) = subsetConstrs ps [PortsSize undefined]
 validObjPars (Obj IODevice_T ps []) = subsetConstrs ps [DomainID undefined, PCIDevice undefined]
+validObjPars (Obj SC_T ps []) = 
+  subsetConstrs ps (replicate (numConstrs (Addr undefined)) (SCExtraParam undefined))
 validObjPars obj = null (params obj)
 
 objectOf :: Name -> KO -> KernelObject Word
@@ -332,6 +380,7 @@ objectOf n obj =
         Obj IODevice_T ps [] -> IODevice Map.empty (getDomainID n ps) (getPCIDevice n ps)
         Obj IrqSlot_T [] [] -> CNode Map.empty 0
         Obj VCPU_T [] [] -> VCPU
+        Obj SC_T ps [] -> SC (getSCExtraInfo n ps)
         Obj _ _ (_:_) ->
           error $ "Only untyped caps can have objects as content: " ++
                   n ++ " = " ++ show obj
@@ -517,6 +566,7 @@ objCapOf containerName obj objRef params =
         IOPorts size -> IOPortsCap objRef (getPorts containerName params size)
         IODevice {} -> IOSpaceCap objRef
         VCPU {} -> VCPUCap objRef
+	SC {} -> SCCap objRef
     else error ("Incorrect params for cap to " ++ printID objRef ++ " in " ++
                 printID containerName)
 
@@ -553,6 +603,10 @@ slotsAndCapsOf objs objName (CapMapping slot _ nameRef params _)
         slot' <- checkSlot slot
         putSlot slot'
         return [(slot', DomainCap)]
+    | (nameRef, params) == ((schedControl, []), []) = do
+        slot' <- checkSlot slot
+        putSlot slot'
+        return [(slot', SchedControlCap)]
     | otherwise = do
         slot' <- checkSlot slot
         let caps = capsOf objs objName (refToIDs objs nameRef) params

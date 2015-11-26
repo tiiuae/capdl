@@ -73,6 +73,8 @@ data Cap
         | IRQControlCap
         | IRQHandlerCap { capObj :: ObjID }
         | DomainCap
+	| SCCap { capObj :: ObjID }
+	| SchedControlCap
 
         -- arch specific caps, ARM11 and IA32 merged
         | FrameCap {
@@ -113,7 +115,17 @@ data TCBExtraInfo = TCBExtraInfo {
     ip :: Maybe Word,
     sp :: Maybe Word,
     elf :: Maybe String,
-    prio :: Maybe Integer }
+    prio :: Maybe Integer,
+    max_prio :: Maybe Integer,
+    crit :: Maybe Integer,
+    max_crit :: Maybe Integer }
+    deriving (Eq, Show)
+
+data SCExtraInfo = SCExtraInfo {
+    period :: Maybe Word,
+    deadline :: Maybe Word,
+    exec_req :: Maybe Word,
+    flags :: Maybe Integer } 
     deriving (Eq, Show)
 
 --
@@ -139,6 +151,8 @@ data KernelObject a
     | Untyped {
         maybeSizeBits :: Maybe Word,
         maybePaddr :: Maybe Word }
+    | SC {
+        sc_extraInfo :: Maybe SCExtraInfo }
 
 -- arch specific objects, ARM11 and IA32 mixed
     | ASIDPool { slots :: CapMap a }
@@ -177,6 +191,7 @@ data KOType
     | IODevice_T
     | IOPT_T
     | VCPU_T
+    | SC_T
     deriving (Show, Eq, Enum)
 
 --
@@ -259,6 +274,12 @@ tcbIPCBufferSlot = 4
 tcbFaultEPSlot :: Word
 tcbFaultEPSlot = 5
 
+tcbSCSlot :: Word
+tcbSCSlot = 6
+
+tcbTempFaultEPSlot :: Word
+tcbTempFaultEPSlot = 7
+
 --
 -- The string used when defining an IOSpaceMasterCap, an ASIDControlCap,
 -- an IRQControlCap or a DomainCap.
@@ -274,6 +295,7 @@ irqControl = "irq_control"
 
 domain :: String
 domain = "domain"
+schedControl = "sched_control"
 
 --
 -- Determine if the given capability points to an object.
@@ -284,6 +306,7 @@ hasObjID IOSpaceMasterCap = False
 hasObjID ASIDControlCap = False
 hasObjID IRQControlCap = False
 hasObjID DomainCap = False
+hasObjID SchedControlCap = False
 hasObjID _  = True
 
 --

@@ -120,6 +120,7 @@ object_type =
     <|> keyw "io_device" IODevice_T
     <|> keyw "io_pt" IOPT_T
     <|> keyw "vcpu" VCPU_T
+    <|> keyw "sc" SC_T
 
 obj_bit_size :: MapParser ObjParam
 obj_bit_size = do
@@ -193,13 +194,37 @@ tcb_prio = do
     n <- integer
     return $ Prio n
 
+tcb_max_prio :: MapParser TCBExtraParam
+tcb_max_prio = do
+    reserved "max_prio"
+    colon
+    n <- integer
+    return $ MaxPrio n
+
+tcb_crit :: MapParser TCBExtraParam
+tcb_crit = do
+    reserved "crit"
+    colon
+    n <- integer
+    return $ Crit n
+
+tcb_max_crit :: MapParser TCBExtraParam
+tcb_max_crit = do
+    reserved "max_crit"
+    colon
+    n <- integer
+    return $ MaxCrit n
+
 tcb_extra_param :: MapParser ObjParam
 tcb_extra_param = do
     param <-   (tcb_addr
             <|> tcb_ip
             <|> tcb_sp
             <|> tcb_elf
-            <|> tcb_prio)
+            <|> tcb_prio
+	    <|> tcb_max_prio
+	    <|> tcb_crit
+	    <|> tcb_max_crit)
     return $ TCBExtraParam param
 
 tcb_dom :: MapParser ObjParam
@@ -239,6 +264,42 @@ pci_device = do
     pci_fun <- number
     return $ PCIDevice (pci_bus, pci_dev, pci_fun)
 
+sc_period :: MapParser SCExtraParam
+sc_period = do
+    reserved "period"
+    colon
+    n <- number
+    return $ Period n
+
+sc_deadline :: MapParser SCExtraParam
+sc_deadline = do
+    reserved "deadline"
+    colon
+    n <- number
+    return $ Deadline n
+
+sc_exec_req :: MapParser SCExtraParam
+sc_exec_req = do
+    reserved "exec_req"
+    colon
+    n <- number
+    return $ ExecReq n
+
+sc_flags :: MapParser SCExtraParam
+sc_flags = do
+    reserved "flags"
+    colon
+    n <- integer
+    return $ Flags n
+
+sc_extra_param :: MapParser ObjParam
+sc_extra_param = do
+    param <-   (sc_period
+            <|> sc_deadline
+            <|> sc_exec_req
+            <|> sc_flags)
+    return $ SCExtraParam param
+
 object_param :: MapParser ObjParam
 object_param =
         try obj_bit_size
@@ -252,6 +313,7 @@ object_param =
     <|> obj_paddr
     <|> domain_id
     <|> pci_device
+    <|> sc_extra_param
 
 object_params :: MapParser [ObjParam]
 object_params =
@@ -265,6 +327,8 @@ symbolic_slot =
     <|> keyw "reply_slot"  tcbReplySlot
     <|> keyw "caller_slot" tcbCallerSlot
     <|> keyw "ipc_buffer_slot" tcbIPCBufferSlot
+    <|> keyw "sc_slot" tcbSCSlot
+    <|> keyw "temp_fault_ep_slot" tcbTempFaultEPSlot
 
 parse_slot :: MapParser Word
 parse_slot = number <|> symbolic_slot
