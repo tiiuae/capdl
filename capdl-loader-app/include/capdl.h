@@ -83,6 +83,8 @@ typedef enum {
     CDL_IOPortsCap,
     CDL_IOSpaceCap,
 #endif
+    CDL_SCCap,
+    CDL_SchedControlCap,
 } CDL_CapType;
 
 typedef struct {
@@ -148,6 +150,7 @@ typedef enum {
     CDL_PD            = seL4_IA32_PageDirectoryObject,
     CDL_Frame         = seL4_IA32_4K,
 #endif
+    CDL_SchedContext  = seL4_SchedContextObject, /* FIXME: is this the right constant? */
     CDL_ASIDPool      = seL4_ObjectTypeCount + 1,
     CDL_Interrupt     = seL4_ObjectTypeCount + 2,
 #if defined(ARCH_IA32)
@@ -161,6 +164,9 @@ typedef struct {
     void *driverinfo;
     seL4_Word driverinfo_addr;
     uint8_t priority;
+    uint8_t max_priority;
+    uint8_t criticality;
+    uint8_t max_criticality;
     seL4_Word pc;
     seL4_Word sp;
     const char *elf_name;
@@ -171,12 +177,20 @@ typedef struct {
 } CDL_TCBExtraInfo;
 
 typedef struct {
+    uint64_t period; 
+    uint64_t deadline;
+    uint64_t exec_req;
+    seL4_SchedFlags_t flags;
+} CDL_SCExtraInfo;
+
+typedef struct {
     const char *name; /* textual ObjID from the capDL spec */
 
     CDL_ObjectType type;
     CDL_CapMap slots;
     seL4_Word size_bits;
     CDL_TCBExtraInfo tcb_extra;
+    CDL_SCExtraInfo sc_extra;
 
     void *paddr; /* Physical address; only relevant for frames and untyped objects. */
 } CDL_Object;
@@ -199,6 +213,8 @@ typedef struct {
 #define CDL_TCB_Caller_Slot         3
 #define CDL_TCB_IPCBuffer_Slot      4
 #define CDL_TCB_FaultEP_Slot        5
+#define CDL_TCB_SC_Slot             6
+#define CDL_TCB_TemporalFaultEP_Slot        7
 
 #define CDL_CapData_MakeGuard(x, y) \
 { .tag = seL4_CapData_Guard, .guard_bits = (y), .guard_size = (x) }
@@ -246,8 +262,17 @@ CDL_TCB_IPCBuffer_Addr(CDL_Object *obj)      { return obj->tcb_extra.ipcbuffer_a
 static inline uint8_t
 CDL_TCB_Priority(CDL_Object *obj)            { return obj->tcb_extra.priority; }
 
+static inline uint8_t
+CDL_TCB_MaxPriority(CDL_Object *obj)         { return obj->tcb_extra.max_priority; }
+
+static inline uint8_t
+CDL_TCB_Criticality(CDL_Object *obj)         { return obj->tcb_extra.criticality; }
+
+static inline uint8_t
+CDL_TCB_MaxCriticality(CDL_Object *obj)      { return obj->tcb_extra.max_criticality; }
+
 static inline uint32_t
-CDL_TCB_Domain(CDL_Object *obj)             { return obj->tcb_extra.domain; }
+CDL_TCB_Domain(CDL_Object *obj)              { return obj->tcb_extra.domain; }
 
 static inline seL4_Word      
 CDL_TCB_PC(CDL_Object *obj)                  { return obj->tcb_extra.pc; }
@@ -257,5 +282,17 @@ CDL_TCB_SP(CDL_Object *obj)                  { return obj->tcb_extra.sp; }
 
 static inline const char *
 CDL_TCB_ElfName(CDL_Object *obj)             { return obj->tcb_extra.elf_name; }
+
+static inline uint64_t
+CDL_SC_Period(CDL_Object *obj)               { return obj->sc_extra.period; }
+
+static inline uint64_t
+CDL_SC_Deadline(CDL_Object *obj)             { return obj->sc_extra.deadline; }
+
+static inline uint64_t
+CDL_SC_ExecutionRequirement(CDL_Object *obj)  { return obj->sc_extra.exec_req; }
+
+static inline seL4_SchedFlags_t
+CDL_SC_Flags(CDL_Object *obj)                { return obj->sc_extra.flags; }
 
 #endif
