@@ -54,8 +54,8 @@ data SCExtraParam =
       period :: Word }
   | Deadline {
       deadline :: Word }
-  | ExecReq {
-      exec_req :: Word }
+  | Budget {
+      budget :: Word }
   | Flags {
       flags :: Integer }
    deriving (Show, Eq, Ord, Typeable, Data)

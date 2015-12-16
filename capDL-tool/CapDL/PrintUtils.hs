@@ -136,9 +136,9 @@ prettyDeadline :: Maybe Word -> Doc
 prettyDeadline Nothing = empty
 prettyDeadline (Just deadline) = text "deadline:" <+> (text $ show deadline)
 
-prettyExecReq :: Maybe Word -> Doc
-prettyExecReq Nothing = empty
-prettyExecReq (Just exec_req) = text "exec_req:" <+> (text $ show exec_req)
+prettyBudget :: Maybe Word -> Doc
+prettyBudget Nothing = empty
+prettyBudget (Just budget) = text "budget:" <+> (text $ show budget)
 
 prettyFlags :: Maybe Integer -> Doc
 prettyFlags Nothing = empty
@@ -146,9 +146,9 @@ prettyFlags (Just flags) = text "flags:" <+> (text $ show flags)
 
 prettySCExtraInfo :: Maybe SCExtraInfo -> Doc
 prettySCExtraInfo Nothing = empty
-prettySCExtraInfo (Just (SCExtraInfo period deadline exec_req flags)) =
+prettySCExtraInfo (Just (SCExtraInfo period deadline budget flags)) =
     hsep $ punctuate comma $ filter (not . isEmpty)
-    	   	   [prettyPeriod period, prettyDeadline deadline, prettyExecReq exec_req, prettyFlags flags]
+    	   	   [prettyPeriod period, prettyDeadline deadline, prettyBudget budget, prettyFlags flags]
 
 prettyPCIDevice :: (Word, Word, Word) -> Doc
 prettyPCIDevice (pci_bus, pci_dev, pci_fun) =

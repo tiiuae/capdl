@@ -179,7 +179,7 @@ typedef struct {
 typedef struct {
     uint64_t period; 
     uint64_t deadline;
-    uint64_t exec_req;
+    uint64_t budget;
 //IK    seL4_SchedFlags_t flags;
 } CDL_SCExtraInfo;
 
@@ -290,7 +290,7 @@ static inline uint64_t
 CDL_SC_Deadline(CDL_Object *obj)             { return obj->sc_extra.deadline; }
 
 static inline uint64_t
-CDL_SC_ExecutionRequirement(CDL_Object *obj)  { return obj->sc_extra.exec_req; }
+CDL_SC_Budget(CDL_Object *obj)  { return obj->sc_extra.budget; }
 
 /* IK
 static inline seL4_SchedFlags_t

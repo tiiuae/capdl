@@ -256,10 +256,10 @@ getSCdeadline [] = Nothing
 getSCdeadline (SCExtraParam (Deadline deadline) : _) = Just deadline
 getSCdeadline (_ : xs) = getSCdeadline xs
 
-getSCexec_req :: [ObjParam] -> Maybe Word
-getSCexec_req [] = Nothing
-getSCexec_req (SCExtraParam (ExecReq exec_req) : _) = Just exec_req
-getSCexec_req (_ : xs) = getSCexec_req xs
+getSCbudget :: [ObjParam] -> Maybe Word
+getSCbudget [] = Nothing
+getSCbudget (SCExtraParam (Budget budget) : _) = Just budget
+getSCbudget (_ : xs) = getSCbudget xs
 
 getSCflags :: [ObjParam] -> Maybe Integer
 getSCflags [] = Nothing
@@ -269,11 +269,11 @@ getSCflags (_ : xs) = getSCflags xs
 getSCExtraInfo :: Name -> [ObjParam] -> Maybe SCExtraInfo
 getSCExtraInfo n params =
     -- FIXME: This is really hacky hardcoding the acceptable combinations of attributes.
-    case (getSCperiod params, getSCdeadline params, getSCexec_req params, getSCflags params) of
-        (Just period, Just deadline, Just exec_req, Just flags) ->
-            Just $ SCExtraInfo (Just period) (Just deadline) (Just exec_req) (Just flags)
-        (Just period, Just deadline, Just exec_req, Nothing) ->
-            Just $ SCExtraInfo (Just period) (Just deadline) (Just exec_req) Nothing 
+    case (getSCperiod params, getSCdeadline params, getSCbudget params, getSCflags params) of
+        (Just period, Just deadline, Just budget, Just flags) ->
+            Just $ SCExtraInfo (Just period) (Just deadline) (Just budget) (Just flags)
+        (Just period, Just deadline, Just budget, Nothing) ->
+            Just $ SCExtraInfo (Just period) (Just deadline) (Just budget) Nothing 
         (Nothing, Nothing, Nothing, Nothing) -> Nothing
         params -> error $ "Incorrect extra sc parameters: " ++ n ++ show params
 

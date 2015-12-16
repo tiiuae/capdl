@@ -248,14 +248,12 @@ showObjectFields _ _ (SC info) _ _ _ =
     ".sc_extra = {" +++
       ".period = " ++ show period_ ++ "," +++
        ".deadline = " ++ show deadline_ ++ "," +++
-       ".exec_req = " ++ show exec_req_ ++ "," +++
-       ".flags = {{" ++ show flags_ ++ "}}," +++
+       ".budget = " ++ show budget_ ++ "," +++
     "},"
     where
 	period_ = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
 	deadline_ = case info of {Just i -> case deadline i of {Just p -> p; _ -> 0}; _ -> 0}
-	exec_req_ = case info of {Just i -> case exec_req i of {Just p -> p; _ -> 0}; _ -> 0}
-	flags_ = case info of {Just i -> case flags i of {Just p -> p; _ -> 0}; _ -> 0}
+	budget_ = case info of {Just i -> case budget i of {Just p -> p; _ -> 0}; _ -> 0}
 
 showObjectFields _ _ x _ _ _ = assert False $
     "UNSUPPORTED OBJECT TYPE: " ++ show x

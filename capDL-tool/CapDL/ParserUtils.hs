@@ -278,12 +278,12 @@ sc_deadline = do
     n <- number
     return $ Deadline n
 
-sc_exec_req :: MapParser SCExtraParam
-sc_exec_req = do
-    reserved "exec_req"
+sc_budget :: MapParser SCExtraParam
+sc_budget = do
+    reserved "budget"
     colon
     n <- number
-    return $ ExecReq n
+    return $ Budget n
 
 sc_flags :: MapParser SCExtraParam
 sc_flags = do
@@ -296,7 +296,7 @@ sc_extra_param :: MapParser ObjParam
 sc_extra_param = do
     param <-   (sc_period
             <|> sc_deadline
-            <|> sc_exec_req
+            <|> sc_budget
             <|> sc_flags)
     return $ SCExtraParam param
 
