@@ -243,14 +243,13 @@ showObjectFields objs obj_id (ASIDPool slots) _ _ _ =
 showObjectFields _ _ (IODevice _ _ _) _ _ _ =
     ".type = CDL_IODevice,"
 showObjectFields _ _ VCPU _ _ _ = ".type = CDL_VCPU,"
-showObjectFields objs obj_id (SC info) _ _ _ =
+showObjectFields _ _ (SC info) _ _ _ =
     ".type = CDL_SchedContext," +++
     ".sc_extra = {" +++
-    indent
-      (".period = " ++ show period_ ++ "," +++
+      ".period = " ++ show period_ ++ "," +++
        ".deadline = " ++ show deadline_ ++ "," +++
        ".exec_req = " ++ show exec_req_ ++ "," +++
-       ".flags = {{" ++ show flags_ ++ "}},") +++
+       ".flags = {{" ++ show flags_ ++ "}}," +++
     "},"
     where
 	period_ = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}

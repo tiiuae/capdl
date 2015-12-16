@@ -108,6 +108,7 @@ showObjectName IOPorts {} = "IOPorts"
 showObjectName IODevice {} = "IODevice"
 showObjectName IOPT {} = "IOPT"
 showObjectName VCPU {} = "VCPU"
+showObjectName SC {} = "SC"
 
 --
 -- Get a cap's name.
@@ -134,6 +135,9 @@ showCapName IOSpaceMasterCap = "IOSpaceMasterCap"
 showCapName IOSpaceCap {} = "IOSpaceCap"
 showCapName IOPTCap {} = "IOPTCap"
 showCapName VCPUCap {} = "VCPUCap"
+showCapName SCCap {} = "SCCap"
+showCapName SchedControlCap {} = "SchedControlCap"
+
 
 showExtraCapAttributes :: Cap -> [(String, String)]
 showExtraCapAttributes (EndpointCap _ capBadge _) = [("badge", show capBadge)]

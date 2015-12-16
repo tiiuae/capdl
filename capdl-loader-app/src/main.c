@@ -194,7 +194,7 @@ add_sel4_cap(CDL_ObjID object_id, seL4_cap_type type, seL4_CPtr slot)
 }
 
 static CDL_Object
-*get_spec_object(CDL_Model *spec, CDL_ObjID object_id)
+*get_spec_object(const CDL_Model *spec, CDL_ObjID object_id)
 {
     return &spec->objects[object_id];
 }
@@ -539,7 +539,7 @@ parse_bootinfo(seL4_BootInfo *bootinfo)
     }
 #endif
 
-    debug_printf("Loader is running in domain %d\n", bootinfo->initThreadDomain);
+    //IK debug_printf("Loader is running in domain %d\n", bootinfo->initThreadDomain);
 
 #if CONFIG_CAPDL_LOADER_PRINT_DEVICE_INFO
 #ifdef CONFIG_KERNEL_STABLE
@@ -892,13 +892,15 @@ init_sc(const CDL_Model *spec, CDL_ObjID sc)
     uint64_t deadline = CDL_SC_Deadline(cdl_sc);
     uint64_t executionRequirement = CDL_SC_ExecutionRequirement(cdl_sc);
     // seL4_SchedFlags_t flags = CDL_SC_Flags(cdl_sc);
-    seL4_SchedFlags_t flags = seL4_SchedFlags_new(seL4_TimeTriggered, seL4_HardCBS, 0); // FIXME@ikuz: this is temporary until the above works
+    // seL4_SchedFlags_t flags = seL4_SchedFlags_new(seL4_TimeTriggered, seL4_HardCBS, 0); // FIXME@ikuz: this is temporary until the above works
 
-    debug_printf("period: %llu, deadline: %llu, exec_req: %llu, flags: 0x%x\n", period, deadline, executionRequirement, flags.words[0]);
+    // debug_printf("period: %llu, deadline: %llu, exec_req: %llu, flags: 0x%x\n", period, deadline, executionRequirement, flags.words[0]);
+    debug_printf("period: %llu, deadline: %llu, exec_req: %llu\n", period, deadline, executionRequirement);
 
     seL4_CPtr seL4_sc = orig_caps(sc);
 
-    int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, period, deadline, executionRequirement, flags);
+    // int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, period, deadline, executionRequirement, flags);
+    int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, executionRequirement);
     seL4_AssertSuccess(error);
 }
 
@@ -950,6 +952,8 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     uint8_t max_priority = CDL_TCB_MaxPriority(cdl_tcb);
     uint8_t criticality = CDL_TCB_Criticality(cdl_tcb);
     uint8_t max_criticality = CDL_TCB_MaxCriticality(cdl_tcb);
+    seL4_Prio_t prio;
+    seL4_Prio_ptr_new(&prio, (seL4_Uint32) priority, (seL4_Uint32) max_priority);
 
     seL4_CPtr sel4_tcb = orig_caps(tcb);
 
@@ -964,13 +968,11 @@ init_tcb(CDL_Model *spec, CDL_ObjID tcb)
     seL4_CapData_t sel4_vspace_root_data = get_capData(CDL_Cap_Data(cdl_vspace_root));
 
     int error = seL4_TCB_Configure(sel4_tcb, sel4_fault_ep, 
-                                   criticality, max_criticality,
-                                   priority, max_priority,
+				   prio, 
                                    sel4_sc,
                                    sel4_cspace_root, sel4_cspace_root_data,
                                    sel4_vspace_root, sel4_vspace_root_data,
-                                   ipcbuffer_addr, sel4_ipcbuffer,
-                                   sel4_tempfault_ep);
+                                   ipcbuffer_addr, sel4_ipcbuffer);
 
     seL4_AssertSuccess(error);
 
@@ -1109,10 +1111,10 @@ configure_thread(CDL_Model *spec, CDL_ObjID tcb)
                                         &global_user_context);
     seL4_AssertSuccess(error);
 
-    uint32_t domain = CDL_TCB_Domain(cdl_tcb);
-    debug_printf("  Assigning thread to domain %u...\n", domain);
-    error = seL4_DomainSet_Set(seL4_CapDomain, domain, sel4_tcb);
-    seL4_AssertSuccess(error);
+    //IK uint32_t domain = CDL_TCB_Domain(cdl_tcb);
+    //IK debug_printf("  Assigning thread to domain %u...\n", domain);
+    //IK error = seL4_DomainSet_Set(seL4_CapDomain, domain, sel4_tcb);
+    //IK seL4_AssertSuccess(error);
 }
 
 static void

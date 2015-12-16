@@ -205,17 +205,17 @@ getTCBprio (_ : xs) = getTCBprio xs
 
 getTCBmax_prio :: [ObjParam] -> Maybe Integer
 getTCBmax_prio [] = Nothing
-getTCBmax_prio (TCBExtraParam (MaxPrio max_prio) : xs) = Just max_prio
+getTCBmax_prio (TCBExtraParam (MaxPrio max_prio) : _) = Just max_prio
 getTCBmax_prio (_ : xs) = getTCBmax_prio xs
 
 getTCBcrit :: [ObjParam] -> Maybe Integer
 getTCBcrit [] = Nothing
-getTCBcrit (TCBExtraParam (Crit crit) : xs) = Just crit
+getTCBcrit (TCBExtraParam (Crit crit) : _) = Just crit
 getTCBcrit (_ : xs) = getTCBcrit xs
 
 getTCBmax_crit :: [ObjParam] -> Maybe Integer
 getTCBmax_crit [] = Nothing
-getTCBmax_crit (TCBExtraParam (MaxCrit max_crit) : xs) = Just max_crit
+getTCBmax_crit (TCBExtraParam (MaxCrit max_crit) : _) = Just max_crit
 getTCBmax_crit (_ : xs) = getTCBmax_crit xs
 
 getExtraInfo :: Name -> [ObjParam] -> Maybe TCBExtraInfo
@@ -248,22 +248,22 @@ getInitArguments (_ : xs) = getInitArguments xs
 
 getSCperiod :: [ObjParam] -> Maybe Word
 getSCperiod [] = Nothing
-getSCperiod (SCExtraParam (Period period) : xs) = Just period
+getSCperiod (SCExtraParam (Period period) : _) = Just period
 getSCperiod (_ : xs) = getSCperiod xs
 
 getSCdeadline :: [ObjParam] -> Maybe Word
 getSCdeadline [] = Nothing
-getSCdeadline (SCExtraParam (Deadline deadline) : xs) = Just deadline
+getSCdeadline (SCExtraParam (Deadline deadline) : _) = Just deadline
 getSCdeadline (_ : xs) = getSCdeadline xs
 
 getSCexec_req :: [ObjParam] -> Maybe Word
 getSCexec_req [] = Nothing
-getSCexec_req (SCExtraParam (ExecReq exec_req) : xs) = Just exec_req
+getSCexec_req (SCExtraParam (ExecReq exec_req) : _) = Just exec_req
 getSCexec_req (_ : xs) = getSCexec_req xs
 
 getSCflags :: [ObjParam] -> Maybe Integer
 getSCflags [] = Nothing
-getSCflags (SCExtraParam (Flags flags) : xs) = Just flags
+getSCflags (SCExtraParam (Flags flags) : _) = Just flags
 getSCflags (_ : xs) = getSCflags xs
 
 getSCExtraInfo :: Name -> [ObjParam] -> Maybe SCExtraInfo
