@@ -46,8 +46,8 @@ seL4_IRQControl = 26
 seL4_PageDirectoryObject = 30
 seL4_ASID_Pool = 31
 
-seL4_SchedContextObject = 31
-seL4_SchedControlObject = 32
+seL4_SchedContextObject = 32
+seL4_SchedControlObject = 33
 
 seL4_CanRead = 1
 seL4_CanWrite = 2
