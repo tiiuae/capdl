@@ -52,8 +52,6 @@ data TCBExtraParam =
 data SCExtraParam =
     Period {
       period :: Word }
-  | Deadline {
-      deadline :: Word }
   | Budget {
       budget :: Word }
   | Flags {

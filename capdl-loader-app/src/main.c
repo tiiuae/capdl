@@ -889,17 +889,16 @@ init_sc(const CDL_Model *spec, CDL_ObjID sc)
     CDL_Object *cdl_sc = get_spec_object(spec, sc);
 
     uint64_t period = CDL_SC_Period(cdl_sc);
-    uint64_t deadline = CDL_SC_Deadline(cdl_sc);
     uint64_t budget = CDL_SC_Budget(cdl_sc);
     // seL4_SchedFlags_t flags = CDL_SC_Flags(cdl_sc);
     // seL4_SchedFlags_t flags = seL4_SchedFlags_new(seL4_TimeTriggered, seL4_HardCBS, 0); // FIXME@ikuz: this is temporary until the above works
 
-    // debug_printf("period: %llu, deadline: %llu, budget: %llu, flags: 0x%x\n", period, deadline, budget, flags.words[0]);
-    debug_printf("period: %llu, deadline: %llu, budget: %llu\n", period, deadline, budget);
+    // debug_printf("period: %llu, budget: %llu, flags: 0x%x\n", period, budget, flags.words[0]);
+    debug_printf("period: %llu, budget: %llu\n", period, budget);
 
     seL4_CPtr seL4_sc = orig_caps(sc);
 
-    // int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, period, deadline, budget, flags);
+    // int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, period, budget, flags);
     int error = seL4_SchedControl_Configure(seL4_CapSchedControl, seL4_sc, budget);
     seL4_AssertSuccess(error);
 }

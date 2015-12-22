@@ -247,12 +247,10 @@ showObjectFields _ _ (SC info) _ _ _ =
     ".type = CDL_SchedContext," +++
     ".sc_extra = {" +++
       ".period = " ++ show period_ ++ "," +++
-       ".deadline = " ++ show deadline_ ++ "," +++
        ".budget = " ++ show budget_ ++ "," +++
     "},"
     where
 	period_ = case info of {Just i -> case period i of {Just p -> p; _ -> 0}; _ -> 0}
-	deadline_ = case info of {Just i -> case deadline i of {Just p -> p; _ -> 0}; _ -> 0}
 	budget_ = case info of {Just i -> case budget i of {Just p -> p; _ -> 0}; _ -> 0}
 
 showObjectFields _ _ x _ _ _ = assert False $

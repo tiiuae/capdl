@@ -178,7 +178,6 @@ typedef struct {
 
 typedef struct {
     uint64_t period; 
-    uint64_t deadline;
     uint64_t budget;
 //IK    seL4_SchedFlags_t flags;
 } CDL_SCExtraInfo;
@@ -285,9 +284,6 @@ CDL_TCB_ElfName(CDL_Object *obj)             { return obj->tcb_extra.elf_name; }
 
 static inline uint64_t
 CDL_SC_Period(CDL_Object *obj)               { return obj->sc_extra.period; }
-
-static inline uint64_t
-CDL_SC_Deadline(CDL_Object *obj)             { return obj->sc_extra.deadline; }
 
 static inline uint64_t
 CDL_SC_Budget(CDL_Object *obj)  { return obj->sc_extra.budget; }

@@ -230,14 +230,13 @@ class VCPU(Object):
         return '%s = vcpu' % self.name
 
 class SC(Object):
-    def __init__(self, name, period=0x0, deadline=0x0, budget=0x0, flags=0x0):
+    def __init__(self, name, period=0x0, budget=0x0, flags=0x0):
         super(SC, self).__init__(name)
         self.period = period
-	self.deadline = deadline
 	self.budget = budget
 	self.flags = flags
 
     def __repr__(self):
-        s = '%(name)s = sc (period: %(period)s, deadline: %(deadline)s, budget: %(budget)s, flags: %(flags)s)' % self.__dict__
+        s = '%(name)s = sc (period: %(period)s, budget: %(budget)s, flags: %(flags)s)' % self.__dict__
         return s
 
