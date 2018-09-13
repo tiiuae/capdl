@@ -169,7 +169,7 @@ class ELF(object):
                     # A range that must be backed by small pages.
                     vaddr = round_down(reg['addr'])
                     while vaddr < reg['addr'] + reg['size']:
-                        pages.add_page(vaddr, r, w, x)
+                        pages.add_page(vaddr, r, w, x, special=True)
                         vaddr += PAGE_SIZE
                 else:
                     # A range that is eligible for promotion.
@@ -196,7 +196,7 @@ class ELF(object):
         ELF file in isolation.
         """
         pages = self.get_pages(infer_asid, pd, use_large_frames, addr_space=addr_space)
-        spec = pages.get_spec(addr_space.get_regions_and_clear() if addr_space else {})
+        (spec, special) = pages.get_spec()
 
         if infer_tcb:
             # Create a single TCB.
@@ -205,7 +205,7 @@ class ELF(object):
             spec.add_object(tcb)
             tcb['vspace'] = pages.get_vspace_root()[1]
 
-        return spec
+        return (spec, special)
 
     def __repr__(self):
         return str(self._elf)
