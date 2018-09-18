@@ -28,11 +28,11 @@ DECLARE_IPCBUFFER_SYMBOL({{ipc_buffer_symbol}})
 
 {% for (symbol, slot) in slots -%}
 seL4_CPtr {{symbol}} = {{slot}};
-{%- endfor %}
+{% endfor %}
 
 {% for (symbol, size, alignment, section) in symbols -%}
 SIZED_SYMBOL({{symbol}}, {{size}}, {{alignment}}, "{{section}}")
-{%- endfor %}
+{% endfor %}
 
 
 char progname[] = "{{progname}}";
