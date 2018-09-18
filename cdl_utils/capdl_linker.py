@@ -58,6 +58,11 @@ def manifest(CSPACE_LAYOUT, SPECIAL_PAGES, architecture, targets):
             ccspace.write(data)
     return c_allocs
 
+def infer_kwargs(object, arch, kwargs):
+    if isinstance(object, CNode):
+        kwargs['guard_size'] = arch.word_size_bits() - object.size_bits
+    return kwargs
+
 def final_spec(c_allocs, OBJECTS, elf_files, architecture):
     elfs = {}
     arch = lookup_architecture(architecture)
@@ -87,6 +92,7 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
 
             for ((_, object_ref, kwargs), (_, slot)) in metadata:
                 if (isinstance(object_ref, six.string_types)):
+                    kwargs = infer_kwargs(obj_space[object_ref], arch, kwargs)
                     print(kwargs)
                     cnode[slot] = Cap(obj_space[object_ref], **kwargs)
                 elif object_ref is seL4_FrameObject:
