@@ -37,7 +37,6 @@ def manifest(CSPACE_LAYOUT, SPECIAL_PAGES, architecture, targets):
 
     c_allocs = {}
     for (e, ccspace) in targets:
-        print((e, ccspace))
         name = os.path.basename(e)
         c_allocs[name] = []
 
@@ -93,7 +92,6 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
             for ((_, object_ref, kwargs), (_, slot)) in metadata:
                 if (isinstance(object_ref, six.string_types)):
                     kwargs = infer_kwargs(obj_space[object_ref], arch, kwargs)
-                    print(kwargs)
                     cnode[slot] = Cap(obj_space[object_ref], **kwargs)
                 elif object_ref is seL4_FrameObject:
                     cnode[slot] = Cap(special[elf.get_symbol_vaddr(kwargs['symbol'])], read=True, write=True, grant=False)
@@ -142,7 +140,6 @@ def main():
     parser_c.add_argument('--build_cnode', action='store_true')
     parser_c.add_argument('--gen_cdl', action='store_true')
     parser_c.set_defaults(which="depends")
-    print(seL4_CapTableObject)
 
     args = parser.parse_args()
 
@@ -164,7 +161,6 @@ def main():
         c_allocs = {}
         OBJECTS = {}
         for file in [item for sublist in args.manifest_in for item in sublist]:
-            print file
             (_c_allocs, _OBJECTS) = pickle.load(file)
             assert _c_allocs.keys() not in c_allocs.keys()
             c_allocs.update(_c_allocs)
