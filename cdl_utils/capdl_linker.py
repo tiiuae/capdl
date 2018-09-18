@@ -91,8 +91,19 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
 
             for ((_, object_ref, kwargs), (_, slot)) in metadata:
                 if (isinstance(object_ref, six.string_types)):
-                    kwargs = infer_kwargs(obj_space[object_ref], arch, kwargs)
-                    cnode[slot] = Cap(obj_space[object_ref], **kwargs)
+                    object = None
+                    try:
+                        object = obj_space[object_ref]
+                    except KeyError:
+                        if object_ref == "vspace_%s" % name:
+                            vspace_object = arch.vspace().type_name
+                            object = obj_space["%s_%s" % (vspace_object, name)]
+                        else:
+                            raise
+                    kwargs = infer_kwargs(object, arch, kwargs)
+                    cnode[slot] = Cap(object, **kwargs)
+
+
                 elif object_ref is seL4_FrameObject:
                     cnode[slot] = Cap(special[elf.get_symbol_vaddr(kwargs['symbol'])], read=True, write=True, grant=False)
 
