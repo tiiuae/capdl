@@ -191,6 +191,12 @@ class ELF(object):
 
     def get_spec(self, infer_tcb=True, infer_asid=True, pd=None,
             use_large_frames=True, addr_space=None):
+        (spec, special) = self.get_spec_special(infer_tcb, infer_asid, pd, use_large_frames, addr_space)
+        return spec
+
+
+    def get_spec_special(self, infer_tcb=True, infer_asid=True, pd=None,
+            use_large_frames=True, addr_space=None):
         """
         Return a CapDL spec with as much information as can be derived from the
         ELF file in isolation.

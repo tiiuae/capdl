@@ -86,7 +86,7 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
             cspace = Cap(cnode, guard_size=arch.word_size_bits() - cnode.size_bits)
 
 # Avoid inferring a TCB as we've already created our own.
-            (elf_spec, special) = elf.get_spec(infer_asid=False)
+            (elf_spec, special) = elf.get_spec_special(infer_asid=False)
             obj_space.merge(elf_spec)
 
             for ((_, object_ref, kwargs), (_, slot)) in metadata:
