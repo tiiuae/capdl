@@ -89,15 +89,22 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
             (elf_spec, special) = elf.get_spec_special(infer_asid=False)
             obj_space.merge(elf_spec)
 
+            elfs[name] = (e, elf, elf_spec, special, cspace, cnode, c_alloc, metadata)
+        except:
+            raise
+    for e in [item for sublist in elf_files for item in sublist]:
+        try:
+            name = os.path.basename(e)
+            (e, elf, elf_spec, special, cspace, cnode, c_alloc, metadata) = elfs[name]
             for ((_, object_ref, kwargs), (_, slot)) in metadata:
                 if (isinstance(object_ref, six.string_types)):
                     object = None
                     try:
                         object = obj_space[object_ref]
                     except KeyError:
-                        if object_ref == "vspace_%s" % name:
+                        if object_ref.startswith("vspace_"):
                             vspace_object = arch.vspace().type_name
-                            object = obj_space["%s_%s" % (vspace_object, name)]
+                            object = obj_space[object_ref.replace("vspace", vspace_object, 1)]
                         else:
                             raise
                     kwargs = infer_kwargs(object, arch, kwargs)
@@ -105,7 +112,10 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
 
 
                 elif object_ref is seL4_FrameObject:
-                    cnode[slot] = Cap(special[elf.get_symbol_vaddr(kwargs['symbol'])], read=True, write=True, grant=False)
+                    try:
+                        cnode[slot] = Cap(special[elf.get_symbol_vaddr(kwargs['symbol'])], read=True, write=True, grant=False)
+                    except KeyError:
+                        pass
 
 
             sp = elf.get_symbol_vaddr("stack")+elf.get_symbol_size("stack");
@@ -123,7 +133,6 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
             tcb.sp = sp
 
 
-            elfs[name] = (e, elf)
         except Exception as inst:
             raise
     return obj_space
