@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.constants import P_FLAGS
-from .Object import TCB
+from .Object import TCB, SC
 from .util import PAGE_SIZE, round_down, page_sizes
 from .PageCollection import PageCollection
 import os, re, six
@@ -209,7 +209,10 @@ class ELF(object):
             tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(),
                 elf=self.name)
             spec.add_object(tcb)
+            sc = SC('sc_%s' % self._safe_name())
+            spec.add_object(sc)
             tcb['vspace'] = pages.get_vspace_root()[1]
+            tcb['sc_slot'] = 'sc_%s' % self._safe_name()
 
         return (spec, special)
 
