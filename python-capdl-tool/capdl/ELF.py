@@ -190,13 +190,13 @@ class ELF(object):
         return pages
 
     def get_spec(self, infer_tcb=True, infer_asid=True, pd=None,
-            use_large_frames=True, addr_space=None):
-        (spec, special) = self.get_spec_special(infer_tcb, infer_asid, pd, use_large_frames, addr_space)
+            use_large_frames=True, addr_space=None, passive=False):
+        (spec, special) = self.get_spec_special(infer_tcb, infer_asid, pd, use_large_frames, addr_space, passive)
         return spec
 
 
     def get_spec_special(self, infer_tcb=True, infer_asid=True, pd=None,
-            use_large_frames=True, addr_space=None):
+            use_large_frames=True, addr_space=None, passive=False):
         """
         Return a CapDL spec with as much information as can be derived from the
         ELF file in isolation.
@@ -209,10 +209,11 @@ class ELF(object):
             tcb = TCB('tcb_%s' % self._safe_name(), ip=self.get_entry_point(),
                 elf=self.name)
             spec.add_object(tcb)
-            sc = SC('sc_%s' % self._safe_name())
-            spec.add_object(sc)
+            if not passive:
+                sc = SC('sc_%s' % self._safe_name())
+                spec.add_object(sc)
+                tcb['sc_slot'] = 'sc_%s' % self._safe_name()
             tcb['vspace'] = pages.get_vspace_root()[1]
-            tcb['sc_slot'] = 'sc_%s' % self._safe_name()
 
         return (spec, special)
 
