@@ -62,7 +62,7 @@ def infer_kwargs(object, arch, kwargs):
         kwargs['guard_size'] = arch.word_size_bits() - object.size_bits
     return kwargs
 
-def final_spec(c_allocs, OBJECTS, elf_files, architecture):
+def final_spec(c_allocs, OBJECTS, elf_files, architecture, elf_attr):
     elfs = {}
     arch = lookup_architecture(architecture)
     obj_space = ObjectAllocator()
@@ -80,13 +80,18 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture):
             name = os.path.basename(e)
             if name in elfs:
                raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
+            attr = elf_attr.pop(name, None)
+            passive = False
+            if attr:
+                passive = attr.get('passive', passive)
+
             elf = ELF(e, name, architecture)
             (c_alloc, metadata) = c_allocs[name]
             cnode=c_alloc.cnode
             cspace = Cap(cnode, guard_size=arch.word_size_bits() - cnode.size_bits)
 
 # Avoid inferring a TCB as we've already created our own.
-            (elf_spec, special) = elf.get_spec_special(infer_asid=False)
+            (elf_spec, special) = elf.get_spec_special(infer_asid=False, passive=passive)
             obj_space.merge(elf_spec)
 
             elfs[name] = (e, elf, elf_spec, special, cspace, cnode, c_alloc, metadata)
@@ -163,32 +168,33 @@ def main():
 
     args = parser.parse_args()
 
+    ELF_ATTR = []
+
     if args.which is "depends":
         if args.build_cnode:
             print(CSPACE_TEMPLATE_FILE)
 
     if args.which is "build_cnode":
-        (OBJECTS, CSPACE_LAYOUT, SPECIAL_PAGES) = pickle.load(args.manifest)
+        (OBJECTS, CSPACE_LAYOUT, SPECIAL_PAGES, ELF_ATTR) = pickle.load(args.manifest)
         elfs = [item for sublist in args.elffile for item in sublist]
         cspaces = [item for sublist in args.ccspace for item in sublist]
         targets = zip(elfs, cspaces)
         c_allocs = manifest(CSPACE_LAYOUT, SPECIAL_PAGES, args.architecture, targets)
         if args.ccspace:
-            pickle.dump((c_allocs, OBJECTS), args.manifest_out)
+            pickle.dump((c_allocs, OBJECTS, ELF_ATTR), args.manifest_out)
             return 0
 
     if args.which is "gen_cdl":
         c_allocs = {}
         OBJECTS = {}
         for file in [item for sublist in args.manifest_in for item in sublist]:
-            (_c_allocs, _OBJECTS) = pickle.load(file)
+            (_c_allocs, _OBJECTS, ELF_ATTR) = pickle.load(file)
             assert _c_allocs.keys() not in c_allocs.keys()
             c_allocs.update(_c_allocs)
             OBJECTS.update(_OBJECTS)
 
 
-
-    obj_space = final_spec(c_allocs, OBJECTS, args.elffile, args.architecture)
+    obj_space = final_spec(c_allocs, OBJECTS, args.elffile, args.architecture, ELF_ATTR)
     args.outfile.write(repr(obj_space.spec))
 
     return 0
