@@ -23,8 +23,8 @@ import six
 pkg_resources.require("jinja2>=2.10")
 from jinja2 import Environment, BaseLoader, FileSystemLoader
 
-from capdl import seL4_CapTableObject, ObjectAllocator, CSpaceAllocator, \
-            ELF, lookup_architecture, Cap, seL4_FrameObject, CNode, Spec
+from capdl import ObjectType, ObjectAllocator, CSpaceAllocator, \
+            ELF, lookup_architecture, Cap, CNode, Spec
 
 CSPACE_TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), "templates/cspace.template.c")
 
@@ -116,7 +116,7 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture, elf_attr):
                     cnode[slot] = Cap(object, **kwargs)
 
 
-                elif object_ref is seL4_FrameObject:
+                elif object_ref is ObjectType.seL4_FrameObject:
                     try:
                         cnode[slot] = Cap(special[elf.get_symbol_vaddr(kwargs['symbol'])], read=True, write=True, grant=False)
                     except KeyError:
