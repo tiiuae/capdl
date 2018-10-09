@@ -62,7 +62,7 @@ def infer_kwargs(object, arch, kwargs):
         kwargs['guard_size'] = arch.word_size_bits() - object.size_bits
     return kwargs
 
-def final_spec(c_allocs, OBJECTS, elf_files, architecture, elf_attr):
+def final_spec(c_allocs, OBJECTS, elf_files, architecture, elf_attr, rt):
     elfs = {}
     arch = lookup_architecture(architecture)
     obj_space = ObjectAllocator()
@@ -81,9 +81,10 @@ def final_spec(c_allocs, OBJECTS, elf_files, architecture, elf_attr):
             if name in elfs:
                raise Exception('duplicate ELF files of name \'%s\' encountered' % name)
             attr = elf_attr.pop(name, None)
-            passive = False
-            if attr:
-                passive = attr.get('passive', passive)
+            # avoid creating SC's if non rt
+            passive = attr.get('passive', False) if rt else True
+            print(attr)
+            print("threads are {0}".format(passive))
 
             elf = ELF(e, name, architecture)
             (c_alloc, metadata) = c_allocs[name]
@@ -148,6 +149,7 @@ def main():
     parser.add_argument('--architecture', '--arch', default='aarch32',
         type=lambda x: type('')(x).lower(), choices=('aarch32', 'arm_hyp', 'ia32', 'x86_64'),
         help='Target architecture.')
+    parser.add_argument('--rt', action='store_true')
     subparsers = parser.add_subparsers()
     parser_a = subparsers.add_parser('build_cnode')
     parser_a.add_argument('--elffile', nargs='+', action='append')
@@ -193,8 +195,7 @@ def main():
             c_allocs.update(_c_allocs)
             OBJECTS.update(_OBJECTS)
 
-
-    obj_space = final_spec(c_allocs, OBJECTS, args.elffile, args.architecture, ELF_ATTR)
+    obj_space = final_spec(c_allocs, OBJECTS, args.elffile, args.architecture, ELF_ATTR, args.rt)
     args.outfile.write(repr(obj_space.spec))
 
     return 0
