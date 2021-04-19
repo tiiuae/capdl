@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#define ZF_LOG_LEVEL ZF_LOG_INFO
+
 #include <autoconf.h>
 #include <capdl_loader_app/gen_config.h>
 
@@ -399,12 +401,12 @@ static unsigned int sort_untypeds(seL4_BootInfo *bootinfo)
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
         if (bootinfo->untypedList[untyped_index].isDevice) {
-            ZF_LOGD("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device",
+            ZF_LOGI("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device",
                     untyped_index, (void *)(untyped_start + untyped_index),
                     (void *)bootinfo->untypedList[untyped_index].paddr,
                     bootinfo->untypedList[untyped_index].sizeBits);
         } else {
-            ZF_LOGD("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...",
+            ZF_LOGI("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...",
                     untyped_index, (void *)(untyped_start + untyped_index),
                     (void *)bootinfo->untypedList[untyped_index].paddr,
                     bootinfo->untypedList[untyped_index].sizeBits,
