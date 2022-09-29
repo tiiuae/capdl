@@ -399,12 +399,12 @@ static unsigned int sort_untypeds(seL4_BootInfo *bootinfo)
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
         if (bootinfo->untypedList[untyped_index].isDevice) {
-            ZF_LOGI("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device",
+            ZF_LOGI("Untyped %3ld (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device",
                     untyped_index, (void *)(untyped_start + untyped_index),
                     (void *)bootinfo->untypedList[untyped_index].paddr,
                     bootinfo->untypedList[untyped_index].sizeBits);
         } else {
-            ZF_LOGI("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...",
+            ZF_LOGI("Untyped %3ld (cptr=%p) (addr=%p) is of size %2d. Placing in slot %ld...",
                     untyped_index, (void *)(untyped_start + untyped_index),
                     (void *)bootinfo->untypedList[untyped_index].paddr,
                     bootinfo->untypedList[untyped_index].sizeBits,
@@ -1429,13 +1429,14 @@ static void map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     }
 #endif
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
-    ZF_LOGI("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x",
+    ZF_LOGI("   Mapping %s into %s with rights={G: %ld, R: %ld, W: %ld}, vaddr = %p, vm_attribs = 0x%lx",
             CDL_Obj_Name(&spec->objects[page]),
             CDL_Obj_Name(&spec->objects[pd_id]),
             seL4_CapRights_get_capAllowGrant(rights),
             seL4_CapRights_get_capAllowRead(rights),
             seL4_CapRights_get_capAllowWrite(rights),
-            vaddr, vm_attribs);
+            (void *)vaddr, 
+            vm_attribs);
 
     if (CDL_Cap_Type(page_cap) == CDL_PTCap) {
         int error = seL4_ARCH_PageTable_Map(sel4_page, sel4_pd, vaddr, vm_attribs);
