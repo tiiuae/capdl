@@ -375,7 +375,7 @@ static unsigned int sort_untypeds(seL4_BootInfo *bootinfo)
     seL4_CPtr untyped_start = bootinfo->untyped.start;
     seL4_CPtr untyped_end = bootinfo->untyped.end;
 
-    ZF_LOGD("Sorting untypeds...");
+    ZF_LOGI("Sorting untypeds...");
 
     seL4_Word count[CONFIG_WORD_SIZE] = {0};
 
@@ -399,12 +399,12 @@ static unsigned int sort_untypeds(seL4_BootInfo *bootinfo)
     // Store untypeds in untyped_cptrs array.
     for (seL4_Word untyped_index = 0; untyped_index != untyped_end - untyped_start; untyped_index++) {
         if (bootinfo->untypedList[untyped_index].isDevice) {
-            ZF_LOGD("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device",
+            ZF_LOGI("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Skipping as it is device",
                     untyped_index, (void *)(untyped_start + untyped_index),
                     (void *)bootinfo->untypedList[untyped_index].paddr,
                     bootinfo->untypedList[untyped_index].sizeBits);
         } else {
-            ZF_LOGD("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...",
+            ZF_LOGI("Untyped %3d (cptr=%p) (addr=%p) is of size %2d. Placing in slot %d...",
                     untyped_index, (void *)(untyped_start + untyped_index),
                     (void *)bootinfo->untypedList[untyped_index].paddr,
                     bootinfo->untypedList[untyped_index].sizeBits,
@@ -422,7 +422,7 @@ static unsigned int sort_untypeds(seL4_BootInfo *bootinfo)
 
 static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
 {
-    ZF_LOGD("Parsing bootinfo...");
+    ZF_LOGI("Parsing bootinfo...");
 
     free_slot_start = bootinfo->empty.start;
     free_slot_end = bootinfo->empty.end;
@@ -435,7 +435,7 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
      */
     free_slot_start += 16;
 
-    ZF_LOGD("  %ld free cap slots, from %ld to %ld",
+    ZF_LOGI("  %ld free cap slots, from %ld to %ld",
             (long)(free_slot_end - free_slot_start),
             (long)free_slot_start,
             (long)free_slot_end);
@@ -483,12 +483,12 @@ static void parse_bootinfo(seL4_BootInfo *bootinfo, CDL_Model *spec)
 
 #if CONFIG_CAPDL_LOADER_PRINT_UNTYPEDS
     int num_untyped = bootinfo->untyped.end - bootinfo->untyped.start;
-    ZF_LOGD("  Untyped memory (%d)", num_untyped);
+    ZF_LOGI("  Untyped memory (%d)", num_untyped);
     for (int i = 0; i < num_untyped; i++) {
         uintptr_t ut_paddr = bootinfo->untypedList[i].paddr;
         uintptr_t ut_size = bootinfo->untypedList[i].sizeBits;
         bool ut_isDevice = bootinfo->untypedList[i].isDevice;
-        ZF_LOGD("    0x%016" PRIxPTR " - 0x%016" PRIxPTR " (%s)", ut_paddr,
+        ZF_LOGI("    0x%016" PRIxPTR " - 0x%016" PRIxPTR " (%s)", ut_paddr,
                 ut_paddr + BIT(ut_size), ut_isDevice ? "device" : "memory");
     }
 #endif
@@ -666,7 +666,7 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
 #if !CONFIG_CAPDL_LOADER_STATIC_ALLOC
     if (isDeviceObject(obj)) {
         seL4_Word paddr = CDL_Obj_Paddr(obj);
-        ZF_LOGD(" device frame/untyped, paddr = %p, size = %d bits", (void *) paddr, obj_size);
+        ZF_LOGI(" device frame/untyped, paddr = %p, size = %d bits", (void *) paddr, obj_size);
 
         /* This is a device object. Look for it in bootinfo. */
         err = find_device_object(paddr, obj_type, obj_size, free_slot, id, info, spec);
@@ -801,7 +801,7 @@ static void create_objects(CDL_Model *spec, seL4_BootInfo *bootinfo)
         CDL_Object *obj = &spec->objects[obj_id_index];
         CDL_ObjectType capdl_obj_type = CDL_Obj_Type(obj);
 
-        ZF_LOGV("Creating object %s in slot %ld, from untyped %lx...", CDL_Obj_Name(obj), (long)free_slot,
+        ZF_LOGI("Creating object %s in slot %ld, from untyped %lx...", CDL_Obj_Name(obj), (long)free_slot,
                 (long)untyped_cptr);
 
         if (requires_creation(capdl_obj_type)) {
@@ -1429,7 +1429,7 @@ static void map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
     }
 #endif
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
-    ZF_LOGD("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x",
+    ZF_LOGI("   Mapping %s into %s with rights={G: %d, R: %d, W: %d}, vaddr=0x%x, vm_attribs=0x%x",
             CDL_Obj_Name(&spec->objects[page]),
             CDL_Obj_Name(&spec->objects[pd_id]),
             seL4_CapRights_get_capAllowGrant(rights),
