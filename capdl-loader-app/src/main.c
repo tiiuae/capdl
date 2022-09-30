@@ -677,7 +677,38 @@ unsigned int create_object(CDL_Model *spec, CDL_Object *obj, CDL_ObjID id, seL4_
 
     /* It's not a device object, or it's a statically allocated device
      * object, so we don't need to search for it. */
-    return retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
+    err = retype_untyped(free_slot, untyped_slot, obj_type, obj_size);
+    if (err == seL4_NoError && 
+        obj_type == CDL_Untyped) {
+
+        /* Create temporary frame for grabbing the paddr.
+         * Just bail out if something goes wrong.
+         */
+        int tmp_err = seL4_Untyped_Retype(free_slot, arch_kobject_get_type(KOBJECT_FRAME, seL4_PageBits), seL4_PageBits,
+                                                seL4_CapInitThreadCNode, 0, 0, free_slot + 2, 1);
+        if (tmp_err != seL4_NoError) {
+            ZF_LOGW("Untyped retype for temporary frame failed.");
+            goto out;
+        }
+
+        seL4_ARCH_Page_GetAddress_t addr = seL4_ARCH_Page_GetAddress(free_slot + 2);
+        ZF_LOGW_IFERR(addr.error, "Failed to get address of temporary frame.");
+
+        /* Delete the temporary cap in all cases.
+         * An error here is fatal because the cap
+         * couldn't be deleted, and the CNode is 
+         * screwed up :( 
+         */
+        tmp_err = seL4_CNode_Delete(seL4_CapInitThreadCNode, free_slot + 2, CONFIG_WORD_SIZE);
+        ZF_LOGF_IFERR(tmp_err, "Failed to delete temporary frame cap from CNode.");
+
+        if (!addr.error) {
+            ZF_LOGI("Created object %s in slot %ld, from untyped %lx, paddr = %p", CDL_Obj_Name(obj), (long)free_slot,
+                (long)untyped_slot, (void *)addr.paddr);
+        }
+    }
+out:
+    return err;
 }
 
 static int requires_creation(CDL_ObjectType type)
@@ -1428,13 +1459,30 @@ static void map_page(CDL_Model *spec UNUSED, CDL_Cap *page_cap, CDL_ObjID pd_id,
         rights = seL4_CapRights_set_capAllowWrite(rights, true);
     }
 #endif
+
+    /* FIXME: this "hack" works also for finding the physical
+     * address of page tables (CDL_PTCap). 
+     *
+     * I don't really know why it works, but it just does. 
+     * Maybe it is related to the fact that page tables are the same size as small
+     * page frames on most archs (seL4_PageBits == seL4_PageTableBits), the exception 
+     * being aarch32 with HYP support enabled, where seL4_PageTableBits is 10.
+     * 
+     * Despite these facts, "seL4_ARCH_Page_GetAddress" seems to return correct
+     * physical address for frames and page tables nevertheless. So let's use it.
+     * 
+     * The FIXME tag is set, because of the suspected unintended behavior, which
+     * might change in the future and this would need fixing. 
+     */
+    seL4_ARCH_Page_GetAddress_t addr UNUSED = seL4_ARCH_Page_GetAddress(sel4_page);
     seL4_ARCH_VMAttributes vm_attribs = CDL_Cap_VMAttributes(page_cap);
-    ZF_LOGI("   Mapping %s into %s with rights={G: %ld, R: %ld, W: %ld}, vaddr = %p, vm_attribs = 0x%lx",
+    ZF_LOGI("   Mapping %s into %s with rights={G: %ld, R: %ld, W: %ld}, paddr = %p, vaddr = %p, vm_attribs = 0x%lx",
             CDL_Obj_Name(&spec->objects[page]),
             CDL_Obj_Name(&spec->objects[pd_id]),
             seL4_CapRights_get_capAllowGrant(rights),
             seL4_CapRights_get_capAllowRead(rights),
             seL4_CapRights_get_capAllowWrite(rights),
+            (void *)(addr.error ? 0 : addr.paddr),
             (void *)vaddr, 
             vm_attribs);
 
