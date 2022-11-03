@@ -195,8 +195,14 @@ class Frame(Object):
     def set_fill(self, fill):
         self.fill = fill
 
+    def get_size(self):
+        return self.size    
+
     def get_size_bits(self):
         return self.size.bit_length() - 1
+
+    def get_paddr(self, default_ret=0):
+        return self.paddr if self.paddr is not None else default_ret
 
     def __repr__(self):
         if self.size % (1024 * 1024) == 0:
